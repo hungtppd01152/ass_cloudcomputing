@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+  <head>
+  	 <meta charset="utf-8">
+     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+	 <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/smoothness/jquery-ui.css">
+	 
+     <script type="text/javascript">
+        $(document).ready(function () {
+			$("#divCategory").hide();
+			$("#divProduct").hide();
+			$("#divCustomer").hide();
+			$("#divTransaction").hide();
+			
+			// CATEGORY
+			$("#menuCategory").click(function(){
+				$("#divCategory").toggle(500);
+				showCate();
+			});
+			
+			function showCate(){
+				$.ajax({
+				type: 'POST',
+				url: 'http://localhost:1987/showcate',
+				complete: function (data) {
+					$('#showCate').html(data.responseText);
+					}
+    			});
+			}
+			
+			$('#addCate').click(function () {
+                var payload = {
+                    name_cate: $('#name_cate').val()
+                };
+                $.ajax({
+                    url: "/addcate",
+                    type: "POST",
+                    contentType: "application/json",
+                    processData: false,
+                    data: JSON.stringify(payload),
+                    complete: function (data) {
+                        $('#output_cate').html(data.responseText);
+                    }
+                });
+				
+				showCate();
+            });
+			
+			// PRODUCT
+			$("#menuProduct").click(function(){
+				$("#divProduct").toggle(500);
+				showCate_dropdown(); // load dropdownList category and pass into form "Add new Product"
+				showPro(); 
+			});
+			
+			function showCate_dropdown(){
+				$.ajax({
+				type: 'POST',
+				url: 'http://localhost:1987/showcate_dropdown',
+				complete: function (data) {
+					$('#category').html(data.responseText);
+					}
+    			});	
+			}
+			
+			function showPro(){
+				$.ajax({
+				type: 'POST',
+				url: 'http://localhost:1987/showpro',
+				complete: function (data) {
+					$('#showPro').html(data.responseText);
+					}
+    			});
+			}
+			
+			$("#addPro").click(function(e) {
+                var payload = {
+                    name_pro: $('#name_pro').val(),
+					id_cate: $('#listCate').val(),
+					desc_pro: $('#desc_pro').val(),
+					price_pro: $('#price_pro').val()
+                };
+                $.ajax({
+                    url: "/addpro",
+                    type: "POST",
+                    contentType: "application/json",
+                    processData: false,
+                    data: JSON.stringify(payload),
+                    complete: function (data) {
+                        $('#output_pro').html(data.responseText);
+                    }
+                });
+				
+				showPro();
+				
+				$("#name_pro").val("");
+				$("#desc_pro").val("");
+				$("#price_pro").val("");
+            });
+			
+			// Delete product
+			$(document).on("click","#tblPro tr td.del",function(){
+				var payload = {
+				id_pro: $(this).attr("id")};
+
+                $.ajax({
+                    url: "/deletepro",
+                    type: "POST",
+                    contentType: "application/json",
+                    processData: false,
+                    data: JSON.stringify(payload),
+                    complete: function (data) {
+                        $('#output_pro').html(data.responseText);
+                    }
+                });	
+				
+				showPro();
+			});
+			
+			// CUSTOMER
+			$("#menuCustomer").click(function(e) {
+                $("#divCustomer").toggle(500);
+				showCus();
+            });
+			
+			function showCus(){
+				$.ajax({
+				url: 'http://localhost:1987/showcus',
+				type: 'POST',
+				complete: function (data) {
+					$('#showCus').html(data.responseText);
+					}
+    			});	
+			}
+			
+			
+			$('#addCus').click(function () {
+                var payload = {
+                    name_cus: $('#name_cus').val(),
+					address_cus: $('#address_cus').val(),
+					phone_cus: $('#phone_cus').val(),
+					email_cus: $('#email_cus').val()
+                };
+                $.ajax({
+                    url: "/addcus",
+                    type: "POST",
+                    contentType: "application/json",
+                    processData: false,
+                    data: JSON.stringify(payload),
+                    complete: function (data) {
+                        $('#output_cus').html(data.responseText);
+                    }
+                });
+				showCus();
+            });	
+			
+			// TRANSACTION
+			$("#menuTransaction").click(function(e) {
+                $("#divTransaction").toggle(500);
+					showCus_dropdown()// load dropdownList customer and pass into form Transaction
+					showPro_dropdown();
+					showTrans();
+            });
+			
+			function showCus_dropdown(){
+				$.ajax({
+				type: 'POST',
+				url: 'http://localhost:1987/showcus_dropdown',
+				complete: function (data) {
+					$('#customer').html(data.responseText);
+					}
+    			});	
+			}
+			
+			function showPro_dropdown(){
+				$.ajax({
+				type: 'POST',
+				url: 'http://localhost:1987/showpro_dropdown',
+				complete: function (data) {
+					$('#product').html(data.responseText);
+					}
+    			});
+			}
+			
+			var countTrans = 0;
+			
+			$("#addTrans").click(function(e) {
+				if(countTrans == 0){
+					var payload = {
+                    id_cus: $('#listCus').val(),
+					date_invoice: $("#date_invoice").val()
+                	};
+					$.ajax({
+						url: "/addinvoice",
+						type: "POST",
+						contentType: "application/json",
+						processData: false,
+						data: JSON.stringify(payload),
+						complete: function (data) {
+							$('#invoice_no').html(data.responseText);
+						}
+					});
+					
+					setTimeout(function(){
+						var payload = {
+						id_invoice: $('#invoice_no').text(),
+						id_pro: $("#listPro").val(),
+						quantity: $("#quantity").val()
+						};
+						$.ajax({
+							url: "/addinvoicedetail",
+							type: "POST",
+							contentType: "application/json",
+							processData: false,
+							data: JSON.stringify(payload),
+							complete: function (data) {
+								$('#output_trans').html(data.responseText);
+							}
+						});
+					}, 1000);
+					
+					countTrans++;
+					
+				}else{
+					var payload = {
+                    id_invoice: $('#invoice_no').text(),
+					id_pro: $("#listPro").val(),
+					quantity: $("#quantity").val()
+                	};
+					$.ajax({
+						url: "/addinvoicedetail",
+						type: "POST",
+						contentType: "application/json",
+						processData: false,
+						data: JSON.stringify(payload),
+						complete: function (data) {
+							$('#output_trans').html(data.responseText);
+						}
+					});
+					countTrans++;
+				}
+				
+				setTimeout(function(){
+					showTrans();	
+				},1000);
+            });
+			
+			$("#doneTrans").click(function(e) {
+                countTrans = 0;
+				$("#date_invoice").val("");
+				$("#invoice_no").text("");
+				$("#quantity").val("");
+            });
+			
+			function showTrans(){
+				$.ajax({
+				type: 'POST',
+				url: 'http://localhost:1987/showtrans',
+				complete: function (data) {
+					$('#showTrans').html(data.responseText);
+					}
+    			});
+			}
+					
+
+			// datepicker handler
+			$(function() {
+    			$("#date_invoice").datepicker();
+  			});
+			
+			$("#date_invoice").datepicker({
+				dateFormat: "dd/mm/yy"	
+			});
+        });
+    </script>
+   
+  </head>
+  <body>
+  
+  <pre>
+███████╗ █████╗ ██╗     ███████╗███████╗    ███╗   ███╗ █████╗ ███╗   ██╗ █████╗  ██████╗ ███████╗██████╗ 
+██╔════╝██╔══██╗██║     ██╔════╝██╔════╝    ████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝ ██╔════╝██╔══██╗
+███████╗███████║██║     █████╗  ███████╗    ██╔████╔██║███████║██╔██╗ ██║███████║██║  ███╗█████╗  ██████╔╝
+╚════██║██╔══██║██║     ██╔══╝  ╚════██║    ██║╚██╔╝██║██╔══██║██║╚██╗██║██╔══██║██║   ██║██╔══╝  ██╔══██╗
+███████║██║  ██║███████╗███████╗███████║    ██║ ╚═╝ ██║██║  ██║██║ ╚████║██║  ██║╚██████╔╝███████╗██║  ██║
+╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝    ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
+                                                                ________________________________________
+                                                                 Developed by: hungtppd01152@fpt.edu.vn                                                                             
+  </pre>
+  
+  <h2 id="menuCategory">█ Category manager</h2>
+  <div id="divCategory">
+  	<h4>Add new category</h4>
+    <input id="name_cate" type="text" />
+    <button id="addCate">Add category</button></br>
+    <p id="output_cate"></p>
+    <h4>List of category</h4>
+    <div id="showCate"></div>
+  </div>
+  
+  <h2 id="menuProduct">█ Product manager</h2>
+  <div id="divProduct">
+  	<h4>Add new product</h4>
+    <table>
+    	<tr><td>Name</td><td><input id="name_pro" type="text"/></td></tr>
+        <tr><td>Category</td><td id="category"></td></tr>
+        <tr><td>Description</td><td><input id="desc_pro" type="text"/></td></tr>
+        <tr><td>Price</td><td><input id="price_pro" type="text"/></td></tr>
+    </table>
+    <button id="addPro">Add product</button>
+    <p id="output_pro"></p>
+    <h4>List of products</h4>
+    <div id="showPro"></div>
+  </div>
+  
+  <h2 id="menuCustomer">█ Customer manager</h2>
+  <div id="divCustomer">
+  	<h4>Add new customer</h4>
+    <table>
+    	<tr><td>Name</td><td><input id="name_cus" type="text" /></td></tr>
+        <tr><td>Address</td><td><input id="address_cus" type="text" /></td></tr>
+        <tr><td>Phone</td><td><input id="phone_cus" type="text" /></td></tr>
+        <tr><td>Email</td><td><input id="email_cus" type="text" /></td></tr>
+    </table>
+    <button id="addCus">Add customer</button> </br>
+    <p id="output_cus"></p>
+    <h4>List of customers</h4>
+    <div id="showCus"></div>
+  </div>
+  
+  <h2 id="menuTransaction">█ Transaction manager</h2>
+  <div id="divTransaction">
+  	<h4>Add new transaction</h4>
+    <table>
+    	<tr><td>Customer</td><td id="customer"></td></tr>
+        <tr><td>Transaction's date</td><td><input id="date_invoice" type="text"/></td><td>Invoice No</td><td id="invoice_no"></td></tr>
+        <tr><td>Product</td><td id="product"></td></tr>
+        <tr><td>Quantity</td><td><input id="quantity" type="text" /></td></tr>
+    </table>
+    <button id="addTrans">Add</button>
+    <button id="doneTrans">Done</button>
+    
+    <h4>List of transaction</h4>
+    <div id="showTrans"></div>
+    <p id="output_trans"></p>
+  </div>
+  
+  </body>
+</html>
